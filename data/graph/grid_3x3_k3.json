@@ -1,0 +1,223 @@
+{
+    "directed": false,
+    "multigraph": false,
+    "graph": [],
+    "num_districts": 3,
+    "nodes": [
+        {
+            "id": 0,
+            "precinct_id": 0,
+            "precinct_id_str": "(0,0)",
+            "border_length": 2,
+            "x_location": 0,
+            "y_location": 0,
+            "area": 1,
+            "population": 1,
+            "county": "A"
+        },
+        {
+            "id": 1,
+            "precinct_id": 1,
+            "precinct_id_str": "(0,1)",
+            "border_length": 1,
+            "x_location": 0,
+            "y_location": 1,
+            "area": 1,
+            "population": 1,
+            "county": "A"
+        },
+        {
+            "id": 2,
+            "precinct_id": 2,
+            "precinct_id_str": "(0,2)",
+            "border_length": 2,
+            "x_location": 0,
+            "y_location": 2,
+            "area": 1,
+            "population": 1,
+            "county": "A"
+        },
+        {
+            "id": 3,
+            "precinct_id": 3,
+            "precinct_id_str": "(1,0)",
+            "border_length": 1,
+            "x_location": 1,
+            "y_location": 0,
+            "area": 1,
+            "population": 1,
+            "county": "A"
+        },
+        {
+            "id": 4,
+            "precinct_id": 4,
+            "precinct_id_str": "(1,1)",
+            "border_length": 0,
+            "x_location": 1,
+            "y_location": 1,
+            "area": 1,
+            "population": 1,
+            "county": "A"
+        },
+        {
+            "id": 5,
+            "precinct_id": 5,
+            "precinct_id_str": "(1,2)",
+            "border_length": 1,
+            "x_location": 1,
+            "y_location": 2,
+            "area": 1,
+            "population": 1,
+            "county": "A"
+        },
+        {
+            "id": 6,
+            "precinct_id": 6,
+            "precinct_id_str": "(2,0)",
+            "border_length": 2,
+            "x_location": 2,
+            "y_location": 0,
+            "area": 1,
+            "population": 1,
+            "county": "A"
+        },
+        {
+            "id": 7,
+            "precinct_id": 7,
+            "precinct_id_str": "(2,1)",
+            "border_length": 1,
+            "x_location": 2,
+            "y_location": 1,
+            "area": 1,
+            "population": 1,
+            "county": "A"
+        },
+        {
+            "id": 8,
+            "precinct_id": 8,
+            "precinct_id_str": "(2,2)",
+            "border_length": 2,
+            "x_location": 2,
+            "y_location": 2,
+            "area": 1,
+            "population": 1,
+            "county": "A"
+        }
+    ],
+    "adjacency": [
+        [
+            {
+                "id": 3,
+                "length": 1
+            },
+            {
+                "id": 1,
+                "length": 1
+            }
+        ],
+        [
+            {
+                "id": 4,
+                "length": 1
+            },
+            {
+                "id": 0,
+                "length": 1
+            },
+            {
+                "id": 2,
+                "length": 1
+            }
+        ],
+        [
+            {
+                "id": 5,
+                "length": 1
+            },
+            {
+                "id": 1,
+                "length": 1
+            }
+        ],
+        [
+            {
+                "id": 0,
+                "length": 1
+            },
+            {
+                "id": 6,
+                "length": 1
+            },
+            {
+                "id": 4,
+                "length": 1
+            }
+        ],
+        [
+            {
+                "id": 1,
+                "length": 1
+            },
+            {
+                "id": 7,
+                "length": 1
+            },
+            {
+                "id": 3,
+                "length": 1
+            },
+            {
+                "id": 5,
+                "length": 1
+            }
+        ],
+        [
+            {
+                "id": 2,
+                "length": 1
+            },
+            {
+                "id": 8,
+                "length": 1
+            },
+            {
+                "id": 4,
+                "length": 1
+            }
+        ],
+        [
+            {
+                "id": 3,
+                "length": 1
+            },
+            {
+                "id": 7,
+                "length": 1
+            }
+        ],
+        [
+            {
+                "id": 4,
+                "length": 1
+            },
+            {
+                "id": 6,
+                "length": 1
+            },
+            {
+                "id": 8,
+                "length": 1
+            }
+        ],
+        [
+            {
+                "id": 5,
+                "length": 1
+            },
+            {
+                "id": 7,
+                "length": 1
+            }
+        ]
+    ]
+}
