@@ -29,6 +29,7 @@ def generate_grid_graph(N, filename, population_matrix=None, *, num_districts: i
                 border_length += 1
 
             node = {
+                "id": idx,
                 "precinct_id": idx,
                 "precinct_id_str": f"({x},{y})",
                 "border_length": border_length,

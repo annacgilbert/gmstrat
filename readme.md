@@ -1,3 +1,61 @@
+# Environment choices — `venv` vs `conda`
+
+This project supports both lightweight Python `venv` workflows and full conda/mamba environment reproduction. I use `venv` locally; below are concise instructions for both approaches so you (or contributors) can reproduce the environment.
+
+## I prefer `venv` (recommended for local/dev)
+
+- Ensure system libs are installed (macOS Homebrew):
+
+```bash
+brew install gdal geos proj libspatialindex
+```
+
+- Create and activate a virtual environment in the repo:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip wheel setuptools
+```
+
+- Install Python packages from `requirements.txt` (created from the active venv):
+
+```bash
+pip install -r requirements.txt
+```
+
+- Register the kernel for notebooks (optional):
+
+```bash
+python -m ipykernel install --user --name gmstrat-venv --display-name "Python (gmstrat-venv)"
+```
+
+Notes:
+- Use the `source .venv/bin/activate` step before running tests or notebooks.
+- The file `requirements.txt` was generated from the working `.venv` and pins versions.
+
+## Conda / Mamba (reproducible environments)
+
+If you prefer conda/mamba, `environment.yml` is included. It pins Python 3.13 and lists pip packages under `pip:` for exact reproduction.
+
+Create with:
+
+```bash
+# using mamba (recommended):
+mamba env create -f environment.yml
+
+# or with conda:
+conda env create -f environment.yml
+
+# activate:
+conda activate gmstrat
+```
+
+## Which to use?
+- Use `venv` for a small, fast developer workflow on your machine (you already use this).
+- Use `conda`/`mamba` when you need fully reproducible builds across machines or CI, or to avoid compiling GIS native deps locally.
+
+If you'd like, I can add a short script `setup_venv.sh` to automate the venv+install steps — tell me if you want that.
 # Requirements
 
 ## Python
