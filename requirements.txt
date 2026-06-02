@@ -40,6 +40,7 @@ pyproj==3.7.2
 python-dateutil==2.9.0.post0
 pyzmq==27.1.0
 rtree==1.4.1
+scikit-learn==1.9.0
 scipy==1.17.1
 setuptools==82.0.1
 shapely==2.1.2

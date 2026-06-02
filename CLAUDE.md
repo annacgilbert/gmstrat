@@ -23,6 +23,8 @@ curl -fsSL https://install.julialang.org | sh
 juliaup add 1.11 && juliaup default 1.11
 ```
 
+The project currently runs under **pyenv Python 3.13.0** when no venv is active. `scikit-learn` is in `requirements.txt` and is used for MDS embeddings.
+
 ## Running the Pipeline
 
 **0. Generate a grid graph JSON (if needed):**
@@ -43,7 +45,7 @@ Dumps a sample every 100 steps; override with `--cycle-walk-out-freq N`. See `sa
 **2. Analysis (Python):** Three notebooks cover different stages:
 - `demo.ipynb` — full pipeline: `SampleProcessor` → clustering → words → flux
 - `exhaustive_3x3.ipynb` — complete enumeration of the 3×3 grid for ground-truth comparison
-- `grid_experiments.ipynb` — systematic experiments varying grid size
+- `grid_experiments.ipynb` — systematic experiments varying grid size, with extensive visualizations (district grids, distance matrix, dendrograms, MDS embeddings, Poincaré disk)
 
 There is no automated test suite. The project is research code run interactively.
 
@@ -99,9 +101,30 @@ After `process_samples()` runs once, use `load_processed()` to reload from cache
 - `sample.py` — `SampleProcessor` is the central object; `SampleStoragePaths` manages all output paths. Two main entry points: `process_samples()` (full ingestion) and `load_processed()` (reload from cache).
 - `data.py` — `generate_grid_graph(N, filename, num_districts=K)` writes a graph JSON; `generate_grid_shape(N)` returns a GeoDataFrame for visualization.
 - `hccfit.py` — `HccLinkage` implements the HccUltraFit algorithm (arXiv:2409.01010); call `hcc.learn_UM()` then save `hcc.Z` as the linkage matrix.
-- `hierachical.py` — `HClusters` wraps a saved linkage: `update_clusters(K)` cuts the dendrogram, `update_centroids()` computes letter representatives, `kcentroids()` refines with k-means iterations. Note: filename is intentionally `hierachical.py` (one 'r').
-- `word.py` — `PlanWordBuilder.build()` runs beam search to assign plans to nearest words; `WordStat` computes stratum weights and the flux matrix F.
+- `hierachical.py` — `HClusters` wraps a saved linkage: `update_clusters(K)` cuts the dendrogram, `update_centroids()` computes letter representatives, `kcentroids()` refines with k-medoids iterations. Note: filename is intentionally `hierachical.py` (one 'r'). `get_cluster_from_linkage(K, Z)` is a standalone helper that returns `(c2i, i2c)` for the tree-cut without a full `HClusters` object.
+- `word.py` — `PlanWordBuilder.build()` runs beam search to assign plans to nearest words; `WordStat` computes stratum weights and the flux matrix F. `WordStat` also exposes `adjacency_matrix()`, `laplacian_matrix()`, `spectral_stats()`, `stationary_table()`, and `flux_dataframe()`.
 - `utils.py` — `weighted_l1()` (sparse and dense modes), `vec_to_str()`/`str_to_vec()`, and all plotting helpers (`plot_plan`, `plot_district`, `plot_distribution`, `plot_words_list`, `plot_words_combined`, `plot_words_centroids`).
+
+### HClusters Key Attributes
+
+After `update_clusters(K)` and `kcentroids()`:
+- `hc.i2c` — `np.ndarray` shape `(n_districts,)`: district_uid → cluster_id
+- `hc.c2i` — `dict[int, list[int]]`: cluster_id → list of member district_uids
+- `hc.cluster_densities` — `np.ndarray` shape `(K, n_precincts)`: continuous centroid density (fraction of cluster members containing each precinct)
+- `hc.centroids` — `list[np.ndarray]`: sparse majority-vote centroid for each cluster (precincts with density ≥ 0.5)
+
+`kcentroids()` reassigns districts to their nearest centroid and updates all four. To get the pure tree-cut assignments (before k-medoids refinement), use `scipy.cluster.hierarchy.fcluster(Z, t=K, criterion='maxclust') - 1`.
+
+### Distance Formula
+
+`SampleProcessor.compute_distance(x, y)` calls `weighted_l1(x, y, population, maximum_distance, sparse=True)`:
+
+```
+d(A, B) = sum of population[i] for i in symmetric_difference(A, B)
+         capped at maximum_distance = 2 * total_pop // num_districts
+```
+
+For uniform-population grids this equals the number of precincts that differ between the two districts. The cap prevents unmatched/incomparable districts from inflating the metric.
 
 ### File Formats
 
@@ -112,6 +135,8 @@ After `process_samples()` runs once, use `load_processed()` to reload from cache
 | `local/output/**/*.feather` | `districts.feather` (uid + district_str), `plans.feather`, `samples.feather`, `distributions.feather` |
 | `local/output/**/*.npy` | `distance_matrix.npy`, `linkage.npy`, `pdist_edges.npy` |
 
+`distributions.feather` schema: `sample_tag`, `plan_str` (dot-joined district UIDs), `count`, `freq`, `plan_vector`. To compute per-district marginal frequency, iterate over rows and accumulate each plan's count into both of its district UIDs.
+
 Output is written to `local/` (git-ignored). Distance matrix and linkage are computed once and cached; delete the `.npy` files to recompute.
 
 ### Sampling Parameters
@@ -121,3 +146,26 @@ Output is written to `local/` (git-ignored). Distance matrix and linkage are com
 - `--cycle-walk-out-freq`: dump sample every N steps (default 100)
 - `--rng-seed`: integer seed for reproducibility
 - `--gamma`, `--iso-weight`: score function weights (default all-zeros = uniform target)
+
+## Plotting Gotchas
+
+All plot helpers (`plot_district`, `plot_distribution`, etc.) call `ax.axis("off")`, which suppresses axis labels including `set_xlabel()` and `set_ylabel()`. To place text below a subplot:
+
+```python
+# Wrong — hidden by axis("off")
+ax.set_xlabel("label")
+
+# Correct — use fig.text() in figure coordinates
+fig.canvas.draw()   # must flush first so ax.get_position() is accurate
+pos = ax.get_position()
+fig.text(pos.x0 + pos.width / 2, pos.y0 - 0.03, "label", ha="center", va="top")
+```
+
+For inset axes aligned to dendrogram leaves, convert data coordinates to figure coordinates after `fig.canvas.draw()`:
+```python
+fig.canvas.draw()
+x_px, y_px = ax.transData.transform((x_data, y_data))
+xf, yf = fig.transFigure.inverted().transform((x_px, y_px))
+ax_in = fig.add_axes([xf - w/2, yf - h, w, h])
+```
+Call `ax.set_ylim(bottom=0)` before the flush to eliminate matplotlib's default y-axis padding so leaf positions map exactly to the axes bottom edge.
