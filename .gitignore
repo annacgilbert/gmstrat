@@ -23,3 +23,12 @@ dist/
 
 local/*
 !local/scratch.md
+
+# Generated data and outputs
+local/
+data/output/
+data/large/
+*.jsonl.gz
+*.pkl
+*.npz
+
