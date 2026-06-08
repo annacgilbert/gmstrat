@@ -32,3 +32,11 @@ data/large/
 *.pkl
 *.npz
 
+
+# Symlinks to data on scratch (Bouchet)
+/local
+/data/output
+
+# Symlinks to scratch (Bouchet)
+/local
+/data/output
