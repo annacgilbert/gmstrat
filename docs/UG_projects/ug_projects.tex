@@ -1,0 +1,320 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.5em}
+
+\newcommand{\hccultra}{\textsc{HccUltraFit}}
+
+\title{Two undergraduate projects:\\ stratified sampling for redistricting plans}
+\author{}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Context}
+
+These projects build on \emph{Towards stratified sampling for
+redistricting plans} (Wang, Herschlag, Yim, Mattingly, Gilbert), which
+constructs a stratification of the space of redistricting plans:
+districts pooled from an ensemble are clustered into representative
+``letters'' with \hccultra{}~\cite{yim2024}, plans are encoded as
+unordered tuples of letters (``words''), and a partition of unity over
+a representative word set yields stratum weights $z_s$ and a flux
+matrix $F$. The paper stops short of two things: actually running
+stratified (umbrella) sampling on these strata, and connecting the
+strata to the election outcomes that ensembles are used to study in
+litigation~\cite{herschlag2020}. Each project takes one of these gaps.
+
+Both projects work at two scales.
+
+\textbf{Small scale (exact): the Duplin--Onslow system.} A 25-unit
+dual graph (24 Onslow County, NC precincts plus Duplin County as a
+single unit) from the Duke Quantifying Gerrymandering project, with
+real population, Black voting-age population, and precinct returns for
+22 races (2008--2016) attached, together with an exhaustive
+enumeration of \emph{all} 17{,}653 population-balanced contiguous
+3-district plans. Because the plan space is fully enumerated, every
+pipeline quantity --- letters, words, POU, $z_s$, $F$, and every
+election observable --- is exact. There is no sampling error anywhere:
+every claim is checkable against ground truth. The full pipeline
+already runs on this system in the \texttt{gmstrat} repository (see
+Section~\ref{sec:infra}).
+
+\textbf{Full scale (sampled): Connecticut and North Carolina.} The
+real-state pipelines from the paper ($|V|=462$, $I=5$ and $|V|=2671$,
+$I=14$), sampled with Metropolized Cycle Walk~\cite{cyclewalk}, plus
+the $m\times n$ grid-graph ladder in \texttt{gmstrat}
+(\texttt{data/graph/}, $6\times6$ through $20\times20$) for controlled
+scaling experiments between the two regimes.
+
+\subsection*{Established starting points (computed June 2026, exact)}
+
+On Duplin--Onslow, with the population-weighted symmetric-difference
+metric, $K=12$ letters, beam width $L=10$ (49 strata):
+
+\begin{itemize}[itemsep=2pt]
+  \item The 14{,}345 distinct districts fill district space densely:
+    within-cluster dispersion only halves by $K=80$, with the
+    interpretable structure exhausted by $K\approx 10$--$12$. Letters
+    at $K=12$ are geographically legible motifs (a Duplin-anchored
+    type, Jacksonville-centered, coastal-south, northern-tier).
+  \item The strata communicate well: exact flux matrix with spectral
+    gap $1-|\lambda_2| \approx 0.48$; largest exact stratum weight
+    $z_s \approx 0.074$.
+  \item \textbf{Alignment with election outcomes is weak.} The
+    between-stratum share of variance (an alignment $R^2$) for seat
+    counts is $1$--$12\%$ under the soft POU; with hard nearest-word
+    assignment it reaches only $\approx 0.26$--$0.50$ at $K=80$, where
+    the 1{,}038 strata hold $\approx 17$ plans each.
+  \item \textbf{Rare events are localized.} Six 2008 races have
+    genuine seat variation; four races are rare events (a Democratic
+    seat exists in $0.1$--$1\%$ of plans). At $K=12$ the top-3 strata
+    contain $91$--$100\%$ of the rare-event plans, even though
+    per-stratum enrichment is modest. All 2010--2016 races are flat
+    (0 Democratic seats in every plan) --- no line-drawing choice can
+    change them.
+\end{itemize}
+
+These numbers frame both projects: there is a lot of alignment $R^2$
+``on the table'' for Project~1, and Project~2 has exact rare-event
+probabilities to benchmark against.
+
+\section{Project 1: What does the stratification see?\\
+\normalsize Alignment of geometric strata with election outcomes}
+
+\subsection*{Question}
+
+The pipeline's strata are built from geometry alone. Are they
+informative about the observables ensembles are actually used for ---
+seat counts, partisan measures~\cite{stephanopoulos2015,katz2020},
+majority-minority structure? If not, can election-aware district
+metrics produce better-aligned strata without destroying spatial
+interpretability?
+
+\subsection*{Why the question matters}
+
+Stratified sampling reduces the variance of $\hat{\mathbb{E}}_\pi[f]$
+only through the between-stratum component of $\mathrm{Var}_\pi(f)$.
+If the strata are nearly independent of $f$, stratification cannot
+help, no matter how well the sampler is engineered. The alignment
+$R^2$ is therefore the design quantity for the whole program, and the
+Duplin--Onslow numbers above show it is small for the natural
+geometric metric. Whether that is intrinsic (seat outcomes depend on
+fine boundary details that any coarse geometric summary discards) or
+fixable (a vote-aware metric recovers it) is open, and either answer
+matters.
+
+\subsection*{Stage 1 --- exact decomposition on Duplin--Onslow}
+
+For each observable $f$ (six competitive 2008 seat counts, four
+rare-event indicators, max district BVAP share), decompose
+\[
+  \mathrm{Var}_\pi(f)
+  \;=\;
+  \underbrace{\textstyle\sum_s z_s\,(\mathbb{E}_{\pi_s}[f]-\mathbb{E}_\pi[f])^2}_{\text{between}}
+  \;+\;
+  \underbrace{\textstyle\sum_s z_s\,\mathrm{Var}_{\pi_s}(f)}_{\text{within}},
+  \qquad
+  \frac{d\pi_s}{d\pi}=\frac{\phi_s}{z_s},
+\]
+exactly, sweeping the POU temperature $T$, beam width $L$, and
+alphabet size $K$. Reproduce and extend the baseline table in
+\texttt{local/duplin/alignment\_R2\_K12\_L10.csv}. Characterize the
+$R^2$-vs-(number of strata) tradeoff curve and the rare-event
+concentration $\max_s P(\text{event}\mid s)$. This stage is mostly
+running and interrogating existing code; first plots within two weeks.
+
+\subsection*{Stage 2 --- election-aware letters}
+
+Augment the district distance with a vote-share term,
+\[
+  d_\lambda(u,v) \;=\; d_{\mathrm{geom}}(u,v)
+  \;+\; \lambda\, W \,\bigl|\,\mathrm{share}(u)-\mathrm{share}(v)\,\bigr|,
+\]
+re-run \hccultra{} and the word construction across $\lambda$ (minutes
+of compute at this scale), and trace alignment-vs-$\lambda$ for each
+observable. The tension to characterize: as $\lambda$ grows, do
+letters remain spatially interpretable district types, or fragment
+into partisan bins? Quantify interpretability (e.g., spatial
+coherence of letter densities) so the tradeoff curve has two real
+axes.
+
+\subsection*{Stage 3 --- does it transfer? (full scale)}
+
+Repeat Stage 1 on the Connecticut ensemble from the paper (50K Cycle
+Walk samples, $K=34$, statewide vote overlays from VEST), where the
+decomposition is no longer exact but the sample is large. Compare: is
+the weak-alignment finding a quirk of the lopsided Duplin--Onslow
+electorate (all 2010--2016 races are flat there), or does it persist
+in a competitive state? This stage turns the exact small-scale finding
+into a paper-ready claim.
+
+\subsection*{Deliverables and skills}
+
+A reproducible alignment analysis (notebook + figures) for both
+scales; an alignment section that slots into the follow-up paper.
+Requires Python/pandas and basic probability (law of total variance);
+no MCMC internals. The pipeline is used as a black box.
+
+\section{Project 2: Does stratified sampling work?\\
+\normalsize Implementing and benchmarking the umbrella sampler}
+
+\subsection*{Question}
+
+Implement the stratified sampler the paper sets up --- tilted chains
+per stratum, EMUS recombination~\cite{thiede2016,dinner2020} --- and
+benchmark it where the right answer is known exactly.
+
+\subsection*{Why Duplin--Onslow first}
+
+A sampler benchmark is only as good as its ground truth. Here the
+exact stratum weights $z_s$, the exact flux matrix, and the exact
+rare-event probabilities (e.g.\ $P(\text{EL08G\_PR Dem seat}) \approx
+0.002$) are already computed. Every component of the implementation
+can be unit-tested against truth before any scaling question arises.
+The $I=3$ district matching is also trivial at this scale, so the
+sampler logic can be developed where the bookkeeping is easy.
+
+\subsection*{Stage 1 --- pin down the tilt}
+
+The draft writes $J_s = J - \phi_s$, which is at most an $e$-fold
+reweighting (since $\phi_s\in[0,1]$) --- too weak to confine a chain
+to a stratum. The standard umbrella choice is
+$J_s = J - \log\psi(x;s)$, i.e.\ $\pi_s \propto \psi(\cdot\,;s)\,\pi$,
+with unnormalized $\psi$ avoiding the POU normalizer in the
+Metropolis--Hastings ratio. Resolving this (with the group) is the
+first milestone and a genuine contribution to the writeup.
+
+\subsection*{Stage 2 --- biased chains on Duplin--Onslow}
+
+Modify the Cycle Walk acceptance step to include
+$\psi(x';s)/\psi(x;s)$. Evaluating $\psi$ requires the plan-to-word
+distance --- a min-cost bipartite matching~\cite{burkard2009} that can
+be warm-started, since each move changes few districts. Run one chain
+per stratum, estimate the overlap matrix $\hat F$, solve
+$z^\top F = z^\top$, and attach EMUS asymptotic error
+bars~\cite{thiede2016}. \textbf{Validation gates:} $\hat z_s \to z_s$
+(exact), $\hat F \to F$ (exact), estimated observables $\to$ exact
+values, with error bars that cover at the nominal rate.
+
+\subsection*{Stage 3 --- the benchmark}
+
+Headline plot: MSE vs.\ total compute for the stratified estimator
+against a single long Cycle Walk chain, for (a) a smooth observable
+(max BVAP share, or a competitive 2008 seat count) and (b) a
+rare-event probability, with the exact answer drawn as a horizontal
+line. The rare events are where the win should be dramatic: the top-3
+strata contain 91--100\% of the rare-event plans, so chains tilted
+into those strata see the event constantly while the unstratified
+chain waits for a $10^{-2}$--$10^{-3}$ fluctuation.
+
+\subsection*{Stage 4 --- climb the ladder (full scale)}
+
+Move up the grid-graph sequence ($6\times6$ through $20\times20$,
+pre-generated in \texttt{data/graph/}) to where enumeration is
+impossible and stratification has to earn its keep, tracking how the
+matching cost, overlap structure, and variance reduction scale with
+$|V|$ and $I$. Connecticut ($I=5$) is the graduation exercise and the
+bridge back to the paper; the incremental-matching machinery developed
+here is what makes $I=14$ (North Carolina) feasible later.
+
+\subsection*{Deliverables and skills}
+
+A working, validated stratified sampler in the \texttt{gmstrat}
+repository; the MSE-vs-compute benchmark at both scales; a methods
+section for the follow-up paper. Requires stronger programming
+(Python plus some Julia for the Cycle Walk harness) and comfort with
+MCMC. Main schedule risk is ramping up on the Cycle Walk codebase ---
+pair with Zijian early.
+
+\section{How the projects interlock}
+
+Project 1 tells Project 2 which observables stratification can
+plausibly help with: if geometric strata cannot see seat counts,
+Project 2 benchmarks against Project 1's election-aware strata, and
+the comparison itself is the joint result. Both run on infrastructure
+that exists today; neither blocks the other. The natural merge point
+is a follow-up paper --- stratified sampling for election-outcome
+estimation, validated exactly at small scale --- with both students on
+it.
+
+\section{Infrastructure inventory}\label{sec:infra}
+
+All in the \texttt{gmstrat} repository (branch
+\texttt{grid-experiments}):
+
+\begin{itemize}[itemsep=2pt]
+  \item \texttt{duplin.py} --- Duplin--Onslow converters, a fast
+    \hccultra{} implementation (validated to produce byte-identical
+    linkage against \texttt{hccfit.py}; full 14{,}345-district run in
+    $\approx 3$ minutes), election utilities.
+  \item \texttt{data/duplin\_onslow/} --- raw Duke data, gmstrat-format
+    graph, all 17{,}653 plans in Cycle Walk JSONL format.
+  \item \texttt{local/duplin/} --- cached pipeline artifacts (distance
+    matrix, linkage, per-plan seat counts), the elbow and
+    stratification drivers (\texttt{run\_elbow.py},
+    \texttt{run\_strata.py}), figures, and the baseline alignment
+    table.
+  \item \texttt{data/graph/} --- the grid ladder; \texttt{sampling/}
+    --- the Julia Cycle Walk harness; \texttt{demo.ipynb} --- the
+    canonical end-to-end pipeline walkthrough.
+  \item The annotated reading list (with per-project reading orders)
+    lives in the Overleaf project under
+    \texttt{undergrad\_reading/}.
+\end{itemize}
+
+\begin{thebibliography}{9}
+
+\bibitem{cyclewalk}
+D.~R. DeFord, G.~Herschlag, J.~C. Mattingly,
+\emph{A cycle walk for sampling measures on spanning forests for
+redistricting}, arXiv:2509.08629, 2025.
+
+\bibitem{yim2024}
+J.-H. Yim, A.~C. Gilbert,
+\emph{Fitting trees to $\ell_1$-hyperbolic distances},
+arXiv:2409.01010, 2024.
+
+\bibitem{herschlag2020}
+G.~Herschlag, H.~S. Kang, J.~Luo, C.~V. Graves, S.~Bangia,
+R.~Ravier, J.~C. Mattingly,
+\emph{Quantifying gerrymandering in North Carolina},
+Statistics and Public Policy 7(1):30--38, 2020.
+
+\bibitem{thiede2016}
+E.~H. Thiede, B.~Van Koten, J.~Weare, A.~R. Dinner,
+\emph{Eigenvector method for umbrella sampling enables error
+analysis}, J.~Chem.\ Phys.\ 145, 084115, 2016.
+
+\bibitem{dinner2020}
+A.~R. Dinner, E.~H. Thiede, B.~Van Koten, J.~Weare,
+\emph{Stratification as a general variance reduction method for
+Markov chain Monte Carlo}, SIAM/ASA J.~Uncertainty Quantification
+8(3):1139--1188, 2020.
+
+\bibitem{stephanopoulos2015}
+N.~O. Stephanopoulos, E.~M. McGhee,
+\emph{Partisan gerrymandering and the efficiency gap},
+University of Chicago Law Review 82(2):831--900, 2015.
+
+\bibitem{katz2020}
+J.~N. Katz, G.~King, E.~Rosenblatt,
+\emph{Theoretical foundations and empirical evaluations of partisan
+fairness in district-based democracies},
+American Political Science Review 114(1):164--178, 2020.
+
+\bibitem{burkard2009}
+R.~Burkard, M.~Dell'Amico, S.~Martello,
+\emph{Assignment Problems}, SIAM, 2009.
+
+\end{thebibliography}
+
+\end{document}
