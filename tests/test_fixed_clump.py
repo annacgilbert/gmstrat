@@ -21,6 +21,7 @@ from experiments.fixed_clump import (
     spanning_tree_count,
 )
 from experiments.run_fixed_clump import run
+from experiments.sample_fixed_clump import build_jobs
 
 
 def write_grid(path: Path, size: int = 2, districts: int = 2) -> None:
@@ -191,6 +192,20 @@ class FixedClumpCoreTests(unittest.TestCase):
         )
         self.assertAlmostEqual(estimate["probability"], 0.5)
         self.assertAlmostEqual(estimate["standard_error"], 0.5)
+
+    def test_example_config_has_stable_28_job_array(self) -> None:
+        config_path = (
+            Path(__file__).resolve().parents[1]
+            / "experiments"
+            / "configs"
+            / "fixed_clump_k2.example.json"
+        )
+        jobs = build_jobs(json.loads(config_path.read_text()))
+        self.assertEqual(len(jobs), 28)
+        outputs = [job[job.index("--output-file") + 1] for job in jobs]
+        seeds = [job[job.index("--rng-seed") + 1] for job in jobs]
+        self.assertEqual(len(outputs), len(set(outputs)))
+        self.assertEqual(len(seeds), len(set(seeds)))
 
 
 class FixedClumpEndToEndTest(unittest.TestCase):

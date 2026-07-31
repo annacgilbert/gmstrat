@@ -65,6 +65,39 @@ MPLCONFIGDIR=local/matplotlib python -m experiments.run_fixed_clump \
 `sample_fixed_clump` skips existing atlases.  It overwrites them only when
 both `--execute` and `--force` are explicit.
 
+## Bouchet / Slurm
+
+Do not use `--execute` directly for the production configuration on a login
+node or code-server allocation.  The checked-in Bouchet launcher submits the
+28 independent chains as a Slurm array and schedules analysis only after every
+array task succeeds:
+
+```bash
+bash experiments/slurm/submit_bouchet.sh
+```
+
+The sampling array uses tasks 0--27 with at most four tasks running at once.
+Each task requests one CPU, 4 GB of memory, and 24 hours.  The dependent
+analysis requests four CPUs, 16 GB, and eight hours.  Command-line `sbatch`
+options may override those defaults if Bouchet policy requires it.
+
+The launcher expects:
+
+- the repository to be submitted from its root;
+- `local/experiments` to point to scratch;
+- the Python environment at
+  `$SCRATCH/gmstrat/envs/fixed-clump`;
+- the instantiated Julia depot at `$SCRATCH/gmstrat/julia_depot`;
+- Bouchet modules `miniconda/24.11.3` and
+  `Julia/1.11.4-linux-x86_64`.
+
+It prints the sampling and analysis job IDs.  Monitor them with the displayed
+`squeue` command or inspect completed tasks with `sacct`.  Resubmission is
+safe: completed final atlases are skipped, while new atlases are written to a
+temporary path and moved into place only after CycleWalk exits successfully.
+An interrupted task therefore cannot leave a partial file that is mistaken
+for completed output.
+
 ## Outputs
 
 The results directory contains:

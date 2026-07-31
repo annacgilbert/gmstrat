@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shlex
 import subprocess
 from pathlib import Path
@@ -51,18 +52,9 @@ def _chain_command(
     ]
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--config", type=Path, required=True)
-    parser.add_argument("--execute", action="store_true")
-    parser.add_argument(
-        "--force",
-        action="store_true",
-        help="overwrite an existing atlas (never implied by --execute)",
-    )
-    args = parser.parse_args()
+def build_jobs(config: dict[str, Any]) -> list[list[str]]:
+    """Build the stable, zero-based job list used by local and Slurm runs."""
 
-    config = json.loads(args.config.read_text())
     defaults = config.get("sampling", {})
     seen_seeds: dict[int, set[int]] = {}
     jobs: list[list[str]] = []
@@ -80,6 +72,41 @@ def main() -> None:
                     raise ValueError(f"n={n} reuses RNG seed {seed}")
                 seen_seeds[n].add(seed)
                 jobs.append(_chain_command(run, entry, defaults))
+    return jobs
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", type=Path, required=True)
+    parser.add_argument("--execute", action="store_true")
+    parser.add_argument(
+        "--job-index",
+        type=int,
+        help="run or print one stable zero-based job (for Slurm arrays)",
+    )
+    parser.add_argument(
+        "--job-count",
+        action="store_true",
+        help="print the number of configured jobs and exit",
+    )
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="overwrite an existing atlas (never implied by --execute)",
+    )
+    args = parser.parse_args()
+
+    config = json.loads(args.config.read_text())
+    jobs = build_jobs(config)
+    if args.job_count:
+        print(len(jobs))
+        return
+    if args.job_index is not None:
+        if not 0 <= args.job_index < len(jobs):
+            parser.error(
+                f"--job-index must lie in [0, {len(jobs) - 1}], got {args.job_index}"
+            )
+        jobs = [jobs[args.job_index]]
 
     for command in jobs:
         output = Path(command[command.index("--output-file") + 1])
@@ -89,7 +116,16 @@ def main() -> None:
         print(shlex.join(command))
         if args.execute:
             output.parent.mkdir(parents=True, exist_ok=True)
-            subprocess.run(command, cwd=REPO_ROOT, check=True)
+            partial = output.with_name(
+                f".{output.name}.partial-{os.getpid()}.jsonl.gz"
+            )
+            run_command = command.copy()
+            run_command[run_command.index("--output-file") + 1] = str(partial)
+            try:
+                subprocess.run(run_command, cwd=REPO_ROOT, check=True)
+                os.replace(partial, output)
+            finally:
+                partial.unlink(missing_ok=True)
 
 
 if __name__ == "__main__":

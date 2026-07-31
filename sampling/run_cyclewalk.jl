@@ -1,6 +1,8 @@
 import Pkg
 Pkg.activate(joinpath(@__DIR__, "runCycleWalkEnv"))
-Pkg.instantiate()
+if get(ENV, "GMSTRAT_SKIP_INSTANTIATE", "false") != "true"
+    Pkg.instantiate()
+end
 
 using CycleWalk
 using JSON
