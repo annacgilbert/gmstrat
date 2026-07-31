@@ -1,0 +1,140 @@
+{
+  "experiment_name": "square_k2_fixed_clump_l1",
+  "balance_tolerance": 0.0,
+  "require_tree_count_target": true,
+  "pilot_reference_n": 20,
+  "random_seed": 20260731,
+  "max_reference_pilot_plans": 500,
+  "etas": [0.04, 0.08, 0.12],
+  "extension_radius_factor": 0.5,
+  "min_component_observations": 5,
+  "max_components_per_eta": 4,
+  "exact_n": [4],
+  "mode_tubes": {
+    "enabled": true,
+    "eta0": 0.12,
+    "eta_values": [0.01, 0.02, 0.04, 0.06, 0.08, 0.1],
+    "scale_quantile": 0.5,
+    "rescaled_s": [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 4.0]
+  },
+  "sampling": {
+    "pop_dev": 0.0,
+    "cycle_walk_steps": "2e6",
+    "cycle_walk_out_freq": 100,
+    "run_diagnostics": false
+  },
+  "runs": [
+    {
+      "n": 4,
+      "graph": "data/graph/grid_4x4_k2.json",
+      "min_step": 200000,
+      "thin": 2,
+      "max_pilot_samples_per_file": 3000,
+      "max_heldout_samples_per_file": 5000,
+      "pilot_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n4/pilot.jsonl.gz", "seed": 40001}
+      ],
+      "heldout_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n4/heldout_1.jsonl.gz", "seed": 40011},
+        {"path": "local/experiments/fixed_clump_k2/samples/n4/heldout_2.jsonl.gz", "seed": 40012},
+        {"path": "local/experiments/fixed_clump_k2/samples/n4/heldout_3.jsonl.gz", "seed": 40013}
+      ]
+    },
+    {
+      "n": 6,
+      "graph": "data/graph/grid_6x6_k2.json",
+      "min_step": 200000,
+      "thin": 2,
+      "max_pilot_samples_per_file": 3000,
+      "max_heldout_samples_per_file": 5000,
+      "pilot_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n6/pilot.jsonl.gz", "seed": 60001}
+      ],
+      "heldout_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n6/heldout_1.jsonl.gz", "seed": 60011},
+        {"path": "local/experiments/fixed_clump_k2/samples/n6/heldout_2.jsonl.gz", "seed": 60012},
+        {"path": "local/experiments/fixed_clump_k2/samples/n6/heldout_3.jsonl.gz", "seed": 60013}
+      ]
+    },
+    {
+      "n": 8,
+      "graph": "data/graph/grid_8x8_k2.json",
+      "min_step": 200000,
+      "thin": 2,
+      "max_pilot_samples_per_file": 3000,
+      "max_heldout_samples_per_file": 5000,
+      "pilot_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n8/pilot.jsonl.gz", "seed": 80001}
+      ],
+      "heldout_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n8/heldout_1.jsonl.gz", "seed": 80011},
+        {"path": "local/experiments/fixed_clump_k2/samples/n8/heldout_2.jsonl.gz", "seed": 80012},
+        {"path": "local/experiments/fixed_clump_k2/samples/n8/heldout_3.jsonl.gz", "seed": 80013}
+      ]
+    },
+    {
+      "n": 10,
+      "graph": "data/graph/grid_10x10_k2.json",
+      "min_step": 200000,
+      "thin": 2,
+      "max_pilot_samples_per_file": 3000,
+      "max_heldout_samples_per_file": 5000,
+      "pilot_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n10/pilot.jsonl.gz", "seed": 100001}
+      ],
+      "heldout_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n10/heldout_1.jsonl.gz", "seed": 100011},
+        {"path": "local/experiments/fixed_clump_k2/samples/n10/heldout_2.jsonl.gz", "seed": 100012},
+        {"path": "local/experiments/fixed_clump_k2/samples/n10/heldout_3.jsonl.gz", "seed": 100013}
+      ]
+    },
+    {
+      "n": 12,
+      "graph": "data/graph/grid_12x12_k2.json",
+      "min_step": 200000,
+      "thin": 2,
+      "max_pilot_samples_per_file": 3000,
+      "max_heldout_samples_per_file": 5000,
+      "pilot_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n12/pilot.jsonl.gz", "seed": 120001}
+      ],
+      "heldout_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n12/heldout_1.jsonl.gz", "seed": 120011},
+        {"path": "local/experiments/fixed_clump_k2/samples/n12/heldout_2.jsonl.gz", "seed": 120012},
+        {"path": "local/experiments/fixed_clump_k2/samples/n12/heldout_3.jsonl.gz", "seed": 120013}
+      ]
+    },
+    {
+      "n": 16,
+      "graph": "data/graph/grid_16x16_k2.json",
+      "min_step": 200000,
+      "thin": 2,
+      "max_pilot_samples_per_file": 3000,
+      "max_heldout_samples_per_file": 5000,
+      "pilot_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n16/pilot.jsonl.gz", "seed": 160001}
+      ],
+      "heldout_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n16/heldout_1.jsonl.gz", "seed": 160011},
+        {"path": "local/experiments/fixed_clump_k2/samples/n16/heldout_2.jsonl.gz", "seed": 160012},
+        {"path": "local/experiments/fixed_clump_k2/samples/n16/heldout_3.jsonl.gz", "seed": 160013}
+      ]
+    },
+    {
+      "n": 20,
+      "graph": "data/graph/grid_20x20_k2.json",
+      "min_step": 200000,
+      "thin": 2,
+      "max_pilot_samples_per_file": 3000,
+      "max_heldout_samples_per_file": 5000,
+      "pilot_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n20/pilot.jsonl.gz", "seed": 200001}
+      ],
+      "heldout_files": [
+        {"path": "local/experiments/fixed_clump_k2/samples/n20/heldout_1.jsonl.gz", "seed": 200011},
+        {"path": "local/experiments/fixed_clump_k2/samples/n20/heldout_2.jsonl.gz", "seed": 200012},
+        {"path": "local/experiments/fixed_clump_k2/samples/n20/heldout_3.jsonl.gz", "seed": 200013}
+      ]
+    }
+  ]
+}

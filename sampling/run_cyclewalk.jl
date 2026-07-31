@@ -165,7 +165,15 @@ function main()
     CycleWalk.push_energy!(measure, CycleWalk.get_log_spanning_forests, gamma)
     CycleWalk.push_energy!(measure, CycleWalk.get_isoperimetric_score, iso_weight)
 
-    ad_param = Dict{String, Any}("popdev" => pop_dev)
+    # Record zero-valued target parameters and the seed as well as nonzero
+    # energies.  Experiment drivers use these fields to audit the tree-count
+    # target and pilot/held-out independence.
+    ad_param = Dict{String, Any}(
+        "popdev" => pop_dev,
+        "gamma" => gamma,
+        "iso_weight" => iso_weight,
+        "rng_seed" => rng_seed,
+    )
     writer = CycleWalk.Writer(measure, constraints, partition, output_file_path; additional_parameters=ad_param)
     CycleWalk.push_writer!(writer, CycleWalk.get_log_spanning_trees)
     CycleWalk.push_writer!(writer, CycleWalk.get_isoperimetric_scores)

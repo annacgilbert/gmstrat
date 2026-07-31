@@ -79,6 +79,10 @@ The above samples 1e5 step, where a sample is dumped every 100 steps with a popu
 ## Analysis
 Rest of the pipeline is contained in `demo.ipynb`.
 
+The focused fixed-clump experiment for the tree-count conjectures is a
+reproducible command-line workflow rather than a notebook.  See
+[`experiments/README.md`](experiments/README.md).
+
 ## Acknowledgements
 The sampling code is adapted from
 `https://github.com/jonmjonm/CycleWalk.jl`
